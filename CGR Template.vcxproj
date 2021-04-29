@@ -155,14 +155,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+<<<<<<< HEAD
     <ClCompile Include="card.cpp" />
     <ClCompile Include="deck.cpp" />
+=======
+    <ClCompile Include="fpsCam.cpp" />
+>>>>>>> main
     <ClCompile Include="main.cpp" />
     <ClCompile Include="tigl.cpp" />
   </ItemGroup>
   <ItemGroup>
+<<<<<<< HEAD
     <ClInclude Include="card.h" />
     <ClInclude Include="deck.h" />
+=======
+    <ClInclude Include="fpsCam.h" />
+>>>>>>> main
     <ClInclude Include="tigl.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -21,10 +21,14 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+<<<<<<< HEAD
     <ClCompile Include="deck.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="card.cpp">
+=======
+    <ClCompile Include="fpsCam.cpp">
+>>>>>>> main
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,10 +36,14 @@
     <ClInclude Include="tigl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="deck.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="card.h">
+=======
+    <ClInclude Include="fpsCam.h">
+>>>>>>> main
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
