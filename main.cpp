@@ -1,7 +1,12 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <stack>
 #include "tigl.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <iostream>
+#include "card.h"
+#include "deck.h"
+
 using tigl::Vertex;
 
 #pragma comment(lib, "glfw3.lib")
@@ -21,7 +26,7 @@ int main(void)
     if (!glfwInit())
         throw "Could not initialize glwf";
 
-    screen_width = 800;
+    screen_width = 1400;
     screen_height = 800;
 
     window = glfwCreateWindow(screen_width, screen_height, "Hello World", NULL, NULL);
@@ -59,7 +64,12 @@ void init()
             glfwSetWindowShouldClose(window, true);
     });
     
+    Card* c1 = new Card(Fill::Empty, Color::Green, Shape::Oval, 3);
+    Card* c2 = new Card(Fill::Empty, Color::Purple, Shape::Oval, 3);
+    Card* c3 = new Card(Fill::Empty, Color::Red, Shape::Oval, 3);
     
+    Deck* deck = new Deck();
+    std::cout << deck->getCardsAmountLeft();
 }
 
 
