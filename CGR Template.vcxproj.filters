@@ -21,14 +21,13 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-<<<<<<< HEAD
     <ClCompile Include="deck.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="card.cpp">
-=======
+	<Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="fpsCam.cpp">
->>>>>>> main
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -36,15 +35,19 @@
     <ClInclude Include="tigl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-<<<<<<< HEAD
     <ClInclude Include="deck.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="card.h">
-=======
+	<Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="fpsCam.h">
->>>>>>> main
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\texture_atlas.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
