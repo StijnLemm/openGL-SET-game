@@ -41,7 +41,8 @@ int previouslySelectedCard[2];
 
 // Deck logic
 int amountOfCards = 0;
-Card cardsOnTable[18];
+const int maxAmountOfCards = 18;
+Card cardsOnTable[maxAmountOfCards];
 Deck* deck;
 
 int main(void)
@@ -160,6 +161,17 @@ void init()
 					if (selectedCard > 3)
 					{
 						selectedCard -= 3;
+					}
+				}
+			}
+			if (key == GLFW_KEY_B)
+			{
+				if (action == GLFW_PRESS)
+				{
+					if (amountOfCards<maxAmountOfCards)
+					{
+						cardsOnTable[amountOfCards] = deck->getNextCard();
+						amountOfCards++;
 					}
 				}
 			}
@@ -297,8 +309,8 @@ glm::vec3 calculatePosition(int index) {
 #pragma region Matrix
 
 glm::mat4 getProjectionMatrix() {
-	float fieldOfView = glm::radians(90.0f);
-	float aspectRatio = windowWidth / windowHeight;
+	constexpr float fieldOfView = glm::radians(90.0f);
+	float aspectRatio = (float)windowWidth / (float)windowHeight;
 	return glm::perspective(fieldOfView, aspectRatio, 0.1f, 200.0f);
 }
 
@@ -366,7 +378,7 @@ void draw()
 		}
 		else if(cardIterator + 1 == previouslySelectedCard[0] || cardIterator + 1 == previouslySelectedCard[1])
 		{
-			createCard(modelMatrix, calculateTexturePosition(cardsOnTable[cardIterator]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+			createCard(modelMatrix, calculateTexturePosition(cardsOnTable[cardIterator]), glm::vec4(0.0f, 0.0f, 1.0f, 1.0f));
 		}
 		else
 		{

@@ -28,7 +28,12 @@ public:
 	unsigned int shapeCount;
 
 	// Empty constructor for empty array of cards
-	Card() {	}
+	Card() {
+		this->fill = (Fill)0;
+		this->color = (Color)0;
+		this->shape = (Shape)0;
+		this->shapeCount = 0;
+	}
 
 	Card(Fill fill, Color color, Shape shape, unsigned int shapeCount){
 		this->fill = fill;
