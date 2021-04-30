@@ -2,20 +2,20 @@
 
 enum Fill {
 	Empty = 1,
-	Filled = 2,
-	Stripes = 3
+	Stripes = 2,
+	Filled = 3
 };
 
 enum Shape {
-	Oval = 1,
-	Swirl = 2,
-	Rhombus = 3
+	Diamond = 1,
+	Rhombus= 2,
+	Swirl = 3
 };
 
 enum Color {
-	Green = 1,
-	Purple = 2,
-	Red = 3
+	Red = 1,
+	Green = 2,
+	Blue = 3
 };
 
 class Card {
@@ -26,6 +26,9 @@ public:
 	Shape shape;
 
 	unsigned int shapeCount;
+
+	// Empty constructor for empty array of cards
+	Card() {	}
 
 	Card(Fill fill, Color color, Shape shape, unsigned int shapeCount){
 		this->fill = fill;

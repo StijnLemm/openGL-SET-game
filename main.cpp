@@ -20,6 +20,7 @@ using tigl::Vertex;
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
+#include <list>
 
 GLFWwindow* window;
 
@@ -33,13 +34,14 @@ bool ribbonMode = false;
 bool flyMode = false;
 FpsCam* camera;
 
+int amountOfCards = 0;
+Card cardsOnTable[18];
+Deck* deck;
+
 int main(void)
 {
 	if (!glfwInit())
 		throw "Could not initialize glwf";
-
-    screen_width = 1400;
-    screen_height = 800;
 
 	window = glfwCreateWindow(windowWidth, windowHeight, "Set - Card game", NULL, NULL);
 	if (!window)
@@ -112,9 +114,11 @@ void init()
 			}
 		});
 
+	// Add camera for fly mode
 	camera = new FpsCam();
 
 
+	// Load textures
 	tigl::shader->enableTexture(true);
 
 	glEnable(GL_TEXTURE);
@@ -140,18 +144,9 @@ void init()
 		std::cout << "Failed to load texture" << std::endl;
 	}
 	stbi_image_free(data);
-    glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
-    {
-        if (key == GLFW_KEY_ESCAPE)
-            glfwSetWindowShouldClose(window, true);
-    });
     
-    Card* c1 = new Card(Fill::Empty, Color::Green, Shape::Oval, 3);
-    Card* c2 = new Card(Fill::Empty, Color::Purple, Shape::Oval, 3);
-    Card* c3 = new Card(Fill::Empty, Color::Red, Shape::Oval, 3);
-    
-    Deck* deck = new Deck();
-    std::cout << deck->getCardsAmountLeft();
+	// Initialise deck
+    deck = new Deck();
 }
 
 
@@ -161,6 +156,24 @@ void update()
 	{
 		camera->update(window);
 	}
+
+	while (amountOfCards<12)
+	{
+		cardsOnTable[amountOfCards] = deck->getNextCard();
+		amountOfCards++;
+	}
+}
+
+glm::vec2 calculateTexturePosition(Card card) {
+	// Calculate the x position on the texture atlas, this will be where the texture starts
+	float x = (card.shape)*3;
+	x += card.shapeCount;
+
+	// Calculate the y position on the texture atlas, this will be where the texture starts
+	float y = (card.color)*3;
+	y += card.fill;
+
+	return glm::vec2(x, y);
 }
 
 glm::vec3 calculatePosition(int index) {
@@ -171,7 +184,7 @@ glm::vec3 calculatePosition(int index) {
 	return glm::vec3(x, y * 2, 0);
 }
 
-void createCard(glm::mat4 modelMatrix, float textureX, float textureY) {
+void createCard(glm::mat4 modelMatrix, glm::vec2 textureLocation) {
 
 	glm::vec3 position(0, 0, 0);
 
@@ -184,6 +197,8 @@ void createCard(glm::mat4 modelMatrix, float textureX, float textureY) {
 	tigl::begin(GL_QUADS);
 
 	float multiplier = 1.0f / 9.0f;
+	float textureX = textureLocation.x;
+	float textureY = textureLocation.y;
 
 	tigl::addVertex(Vertex::PT(a, glm::vec2((textureX - 1.0f) * multiplier, (textureY - 1.0f) * multiplier)));
 	tigl::addVertex(Vertex::PT(b, glm::vec2((textureX - 1.0f) * multiplier, textureY * multiplier)));
@@ -210,11 +225,12 @@ void draw()
 
 	tigl::shader->enableColor(true);
 
-	for (int i = 0; i < 13; i++)
+	
+	for (int i = 0; i < amountOfCards; i++)
 	{
 		glm::mat4 modelMatrix(1.0f);
 		modelMatrix = glm::translate(modelMatrix, calculatePosition(i));
 
-		createCard(modelMatrix, (float)(i % 9), (float)(i % 9));
+		createCard(modelMatrix, calculateTexturePosition(cardsOnTable[i]));
 	}
 }
