@@ -34,6 +34,12 @@ bool ribbonMode = false;
 bool flyMode = false;
 FpsCam* camera;
 
+// Card selection
+int selectedCard = 1;
+int amountOfSelectedCards = 0;
+int previouslySelectedCard[2];
+
+// Deck logic
 int amountOfCards = 0;
 Card cardsOnTable[18];
 Deck* deck;
@@ -72,6 +78,9 @@ int main(void)
 
 void init()
 {
+
+#pragma region keyCallBacks
+
 	glfwSetKeyCallback(window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 		{
 			if (key == GLFW_KEY_ESCAPE) {
@@ -112,17 +121,116 @@ void init()
 					}
 				}
 			}
+
+			if (key == GLFW_KEY_DOWN)
+			{
+				if (action == GLFW_PRESS)
+				{
+					if (selectedCard > 1)
+					{
+						selectedCard -= 1;
+					}
+				}
+			}
+			if (key == GLFW_KEY_UP)
+			{
+				if (action == GLFW_PRESS)
+				{
+					if (selectedCard != amountOfCards)
+					{
+						selectedCard += 1;
+					}
+				}
+			}
+			if (key == GLFW_KEY_RIGHT)
+			{
+				if (action == GLFW_PRESS)
+				{
+					// Amount of cards starts at 0 so +1
+					if (selectedCard < amountOfCards + 1 - 3)
+					{
+						selectedCard += 3;
+					}
+				}
+			}
+			if (key == GLFW_KEY_LEFT)
+			{
+				if (action == GLFW_PRESS)
+				{
+					if (selectedCard > 3)
+					{
+						selectedCard -= 3;
+					}
+				}
+			}
+			if (key == GLFW_KEY_ENTER)
+			{
+				if (action == GLFW_PRESS)
+				{
+					if (previouslySelectedCard[0]==selectedCard)
+					{
+						if (amountOfSelectedCards == 1) {
+							previouslySelectedCard[0] = 0;
+							amountOfSelectedCards--;
+						}
+						else
+						{
+							previouslySelectedCard[0] = previouslySelectedCard[1];
+							previouslySelectedCard[1] = 0;
+							amountOfSelectedCards--;
+						}
+					}
+					else if(previouslySelectedCard[1] == selectedCard)
+					{
+						previouslySelectedCard[1] = 0;
+						amountOfSelectedCards--;
+					}
+					else if (amountOfSelectedCards==2)
+					{
+						// 3 cards have been selected
+						// Check if the cards are correct
+						Card card1 = cardsOnTable[selectedCard-1];
+						Card card2 = cardsOnTable[previouslySelectedCard[0]-1];
+						Card card3 = cardsOnTable[previouslySelectedCard[1]-1];
+						if (card1.compare(&card2, &card3)) {
+							std::cout << "You have got a Set" << std::endl;
+							cardsOnTable[selectedCard-1] = deck->getNextCard();
+							cardsOnTable[previouslySelectedCard[0]-1] = deck->getNextCard();
+							cardsOnTable[previouslySelectedCard[1]-1] = deck->getNextCard();
+						}
+						else {
+							std::cout << "That was not a correct Set" << std::endl;
+						}
+
+						amountOfSelectedCards = 0;
+						previouslySelectedCard[0] = 0;
+						previouslySelectedCard[1] = 0;
+					}else {
+						previouslySelectedCard[amountOfSelectedCards] = selectedCard;
+						amountOfSelectedCards++;
+					}
+				}
+			}
 		});
+#pragma endregion
 
 	// Add camera for fly mode
 	camera = new FpsCam();
 
+	// Initialise deck
+	deck = new Deck();
 
-	// Load textures
+#pragma region texture loading
+
 	tigl::shader->enableTexture(true);
 
 	glEnable(GL_TEXTURE);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	tigl::shader->enableColor(true);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -144,9 +252,8 @@ void init()
 		std::cout << "Failed to load texture" << std::endl;
 	}
 	stbi_image_free(data);
-    
-	// Initialise deck
-    deck = new Deck();
+#pragma endregion
+
 }
 
 
@@ -157,20 +264,22 @@ void update()
 		camera->update(window);
 	}
 
-	while (amountOfCards<12)
+	while (amountOfCards < 12)
 	{
 		cardsOnTable[amountOfCards] = deck->getNextCard();
 		amountOfCards++;
 	}
 }
 
+#pragma region Calculation of card data
+
 glm::vec2 calculateTexturePosition(Card card) {
 	// Calculate the x position on the texture atlas, this will be where the texture starts
-	float x = (card.shape)*3;
+	float x = (card.shape) * 3.0f;
 	x += card.shapeCount;
 
 	// Calculate the y position on the texture atlas, this will be where the texture starts
-	float y = (card.color)*3;
+	float y = (card.color) * 3.0f;
 	y += card.fill;
 
 	return glm::vec2(x, y);
@@ -183,27 +292,49 @@ glm::vec3 calculatePosition(int index) {
 
 	return glm::vec3(x, y * 2, 0);
 }
+#pragma endregion
 
-void createCard(glm::mat4 modelMatrix, glm::vec2 textureLocation) {
+#pragma region Matrix
 
-	glm::vec3 position(0, 0, 0);
+glm::mat4 getProjectionMatrix() {
+	float fieldOfView = glm::radians(90.0f);
+	float aspectRatio = windowWidth / windowHeight;
+	return glm::perspective(fieldOfView, aspectRatio, 0.1f, 200.0f);
+}
 
+glm::mat4 getViewMatrix() {
+	// Position of the camera in the space
+	glm::vec3 cameraPosition(2, 0, 5);
+
+	// Where we want to point the camera to
+	glm::vec3 cameraTarget = glm::vec3(2.0f, 0.5f, 0.0f);
+
+	// The positive X-axis of the camera
+	glm::vec3 upVector = glm::vec3(0.0f, 1.0f, 0.0f);
+
+	return glm::lookAt(cameraPosition, cameraTarget, upVector);
+}
+#pragma endregion
+
+
+
+void createCard(glm::mat4 modelMatrix, glm::vec2 textureLocation, glm::vec4 color) {
 	glm::vec3 a(-0.5, -1, -0.5);
 	glm::vec3 b(0.5, -1, -0.5);
 	glm::vec3 c(0.5, 1, -0.5);
 	glm::vec3 d(-0.5, 1, -0.5);
 
-	tigl::shader->setModelMatrix(modelMatrix);
-	tigl::begin(GL_QUADS);
-
+	// floats used by texture calculations
 	float multiplier = 1.0f / 9.0f;
 	float textureX = textureLocation.x;
 	float textureY = textureLocation.y;
 
-	tigl::addVertex(Vertex::PT(a, glm::vec2((textureX - 1.0f) * multiplier, (textureY - 1.0f) * multiplier)));
-	tigl::addVertex(Vertex::PT(b, glm::vec2((textureX - 1.0f) * multiplier, textureY * multiplier)));
-	tigl::addVertex(Vertex::PT(c, glm::vec2(textureX * multiplier, textureY * multiplier)));
-	tigl::addVertex(Vertex::PT(d, glm::vec2(textureX * multiplier, (textureY - 1.0f) * multiplier)));
+	tigl::shader->setModelMatrix(modelMatrix);
+	tigl::begin(GL_QUADS);
+	tigl::addVertex(Vertex::PTC(a, glm::vec2((textureX - 1.0f) * multiplier, (textureY - 1.0f) * multiplier), color));
+	tigl::addVertex(Vertex::PTC(b, glm::vec2((textureX - 1.0f) * multiplier, textureY * multiplier), color));
+	tigl::addVertex(Vertex::PTC(c, glm::vec2(textureX * multiplier, textureY * multiplier), color));
+	tigl::addVertex(Vertex::PTC(d, glm::vec2(textureX * multiplier, (textureY - 1.0f) * multiplier), color));
 	tigl::end();
 }
 
@@ -214,23 +345,32 @@ void draw()
 
 	if (flyMode)
 	{
-		tigl::shader->setProjectionMatrix(glm::perspective(glm::radians(90.0f), (float)(windowWidth / windowHeight), 0.1f, 200.0f));
+		tigl::shader->setProjectionMatrix(getProjectionMatrix());
 		tigl::shader->setViewMatrix(camera->getMatrix());
 	}
 	else {
 
-		tigl::shader->setProjectionMatrix(glm::perspective(glm::radians(90.0f), (float)(windowWidth / windowHeight), 0.1f, 200.0f));
-		tigl::shader->setViewMatrix(glm::lookAt(glm::vec3(2, 0, 5), glm::vec3(2, 0.5, 0), glm::vec3(0, 1, 0)));
+		tigl::shader->setProjectionMatrix(getProjectionMatrix());
+		tigl::shader->setViewMatrix(getViewMatrix());
 	}
 
-	tigl::shader->enableColor(true);
 
-	
-	for (int i = 0; i < amountOfCards; i++)
+	for (int cardIterator = 0; cardIterator < amountOfCards; cardIterator++)
 	{
 		glm::mat4 modelMatrix(1.0f);
-		modelMatrix = glm::translate(modelMatrix, calculatePosition(i));
+		modelMatrix = glm::translate(modelMatrix, calculatePosition(cardIterator));
 
-		createCard(modelMatrix, calculateTexturePosition(cardsOnTable[i]));
+		if (cardIterator + 1 == selectedCard)
+		{
+			createCard(modelMatrix, calculateTexturePosition(cardsOnTable[cardIterator]), glm::vec4(1.0f, 1.0f, 0.0f, 1.0f));
+		}
+		else if(cardIterator + 1 == previouslySelectedCard[0] || cardIterator + 1 == previouslySelectedCard[1])
+		{
+			createCard(modelMatrix, calculateTexturePosition(cardsOnTable[cardIterator]), glm::vec4(1.0f, 0.0f, 0.0f, 1.0f));
+		}
+		else
+		{
+			createCard(modelMatrix, calculateTexturePosition(cardsOnTable[cardIterator]), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+		}
 	}
 }
